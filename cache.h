@@ -5,7 +5,7 @@
 #include <memory>
 #include <cassert>
 #include <map>
-#include<iostream>
+#include <iostream>
 class cache_entry
 {
 public:
@@ -18,23 +18,23 @@ public:
     cache_entry() : m_status(invalid), m_tag(-1)
     {
     }
-    void set_entry(int tag, cache_entry_status status)
+    void set_entry(unsigned long long tag, cache_entry_status status)
     {
         m_tag = tag;
         m_status = status;
     }
     cache_entry_status get_status() { return m_status; }
-    int get_tag() { return m_tag; }
+    unsigned long long get_tag() { return m_tag; }
 
 private:
     cache_entry_status m_status;
-    int m_tag;
+    unsigned long long m_tag;
 };
 class mshr
 {
-    public:
-    using t_merge = std::vector<int>;
-    using t_array = std::map<int, t_merge>;
+public:
+    using t_merge = std::vector<unsigned long long>;
+    using t_array = std::map<unsigned long long, t_merge>;
 
 public:
     enum mshr_ret
@@ -46,24 +46,27 @@ public:
     mshr(int entry = 0, int max_merge = 0) : num_entry(entry),
                                              max_merge(max_merge){
 
-
                                              };
-    mshr_ret access(int addr);
-    void fill(int addr)
+    mshr_ret access(unsigned long long addr);
+    void fill(unsigned long long addr)
     {
-        array.erase(addr>>6);
+        array.erase(addr >> 6);
     }
-    bool full(int addr){
-        if(array.find(addr>>6)!=array.end()){
-            return array[addr>>6].size()>=max_merge;//bug <
-        }else{
-            return array.size()>=num_entry;
+    bool full(unsigned long long addr)
+    {
+        if (array.find(addr >> 6) != array.end())
+        {
+            return array[addr >> 6].size() >= max_merge; //bug <
+        }
+        else
+        {
+            return array.size() >= num_entry;
         }
     }
 
 private:
-    int num_entry;
-    int max_merge;
+    size_t num_entry;
+    size_t max_merge;
     t_array array;
     friend class cache_debugger;
 };
@@ -82,19 +85,20 @@ public:
     enum access_ret
     {
         hit,
+        hit_res,
         miss,
         resfail
     };
 
     cache(int way = 0, int set = 0, rep_policy p = lru, int mshr_num = 16, int mshr_maxmerge = 32);
     std::pair<int, int> get_size() { return std::make_pair(num_set, num_way); }
-    virtual ~cache(){}
-    access_ret access(int addr);
-    void fill(int addr)
+    virtual ~cache() {}
+    access_ret access(unsigned long long addr);
+    void fill(unsigned long long addr)
     {
         auto blockAddr = addr >> 6;
-        int set = blockAddr % num_set;
-        int tag = blockAddr;
+        auto set = blockAddr % num_set;
+        auto tag = blockAddr;
         auto &set_entry = tag_array[set];
         for (auto &entry : set_entry)
         {
@@ -108,12 +112,12 @@ public:
     }
 
 private:
-    mshr m_mshr;
-    t_array tag_array;
     unsigned num_way;
     unsigned num_set;
     unsigned policy;
 
+    t_array tag_array;
+    mshr m_mshr;
 
     friend class cache_debugger;
 };
@@ -130,10 +134,12 @@ public:
     {
         return tcache.tag_array;
     }
-    static mshr::t_array get_mshr_array(cache & tcache){
+    static mshr::t_array get_mshr_array(cache &tcache)
+    {
         return tcache.m_mshr.array;
     }
-    static mshr::t_array get_mshr_array(mshr & m_mshr){
+    static mshr::t_array get_mshr_array(mshr &m_mshr)
+    {
         return m_mshr.array;
     }
 };

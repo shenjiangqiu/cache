@@ -1,4 +1,4 @@
-CPPFLAGS := -fPIC -O3
+CPPFLAGS := -fPIC -O3 -Wall -g
 libsjqcache.so:cache.o
 	g++ --shared $^ -o $@
 test:test.out

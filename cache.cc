@@ -8,11 +8,11 @@ cache::cache(int way, int set, rep_policy p,
                                                 m_mshr(mshr_num, mshr_maxmerge)
 {
 }
-cache::access_ret cache::access(int addr)
+cache::access_ret cache::access(unsigned long long addr)
 {
     auto blockAddr = addr >> 6;
-    int set = blockAddr % num_set;
-    int tag = blockAddr;
+    auto set = blockAddr % num_set;
+    auto tag = blockAddr;
     if (policy == lru)
     {
         auto &set_entry = tag_array[set];
@@ -76,9 +76,9 @@ cache::access_ret cache::access(int addr)
                         }
                         it->set_entry(temp.get_tag(), temp.get_status());
                     }
-
+                    
                     //to the first place; and push to mshr
-                    return miss;
+                    return hit_res;
                 }
             }
             it++;
@@ -125,7 +125,7 @@ cache::access_ret cache::access(int addr)
                     }
 
                     //to the first place; and push to mshr
-                    return hit;
+                    return hit_res;
                 }
             }
             it++;
@@ -145,9 +145,9 @@ cache::access_ret cache::access(int addr)
 
 //start mshr
 
-mshr::mshr_ret mshr::access(int addr)
+mshr::mshr_ret mshr::access(unsigned long long addr)
 {
-    auto blockAddr = addr >> 6;//bug
+    auto blockAddr = addr >> 6; //bug
     if (array.find(blockAddr) != array.end())
     {
         if (array[blockAddr].size() >= max_merge)
@@ -163,7 +163,7 @@ mshr::mshr_ret mshr::access(int addr)
         {
             return entry_full;
         }
-        array.insert(std::make_pair(blockAddr, std::vector<int>()));
+        array.insert(std::make_pair(blockAddr, std::vector<unsigned long long>()));
         array[blockAddr].push_back(addr);
         return ok;
     }
