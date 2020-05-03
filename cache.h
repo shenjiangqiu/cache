@@ -3,9 +3,20 @@
 #include <vector>
 #include <tuple>
 #include <memory>
-#include <cassert>
 #include <map>
 #include <iostream>
+#ifndef NDEBUG
+#   define ASSERT(condition, message) \
+    do { \
+        if (! (condition)) { \
+            std::cerr << "Assertion `" #condition "` failed in " << __FILE__ \
+                      << " line " << __LINE__ << ": " << message << std::endl; \
+            std::terminate(); \
+        } \
+    } while (false)
+#else
+#   define ASSERT(condition, message) do { } while (false)
+#endif
 class cache_entry
 {
 public:
@@ -104,7 +115,7 @@ public:
         {
             if (entry.get_tag() == tag)
             {
-                assert(entry.get_status() == cache_entry::reserved);
+                ASSERT(entry.get_status() == cache_entry::reserved,"add="<<addr);
                 entry.set_entry(tag, cache_entry::valid);
                 m_mshr.fill(addr);
             }
